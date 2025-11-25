@@ -14,7 +14,7 @@ Students = db.Table(
     db.Column('L_name', db.String(), nullable=False),
     db.Column('Password', db.String(6), nullable=False),
     db.Column('Email', db.String(), nullable=False),
-    db.Column('Phone', db.Integer, nullable=False),
+    db.Column('Phone', db.String(10), nullable=False),
 )
 
 # Wallets Table
