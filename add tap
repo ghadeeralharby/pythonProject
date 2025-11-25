@@ -9,7 +9,6 @@ def addTap(self, parent_frame):
               messagebox.showerror("Error", "Please enter entity name!")
               return
 
-          # التحقق من وجود الكيان
           if entity_name in get_entities():
               messagebox.showerror("Error", "KSU entity already registered!")
           else:
