@@ -1,3 +1,11 @@
+import tkinter
+import tkinter.messagebox
+import database
+import random
+import re
+
+
+
 def open_signup_window():
     global student_id_entry, first_name_entry, last_name_entry, password_entry, email_entry, phone_entry
 
@@ -122,8 +130,8 @@ def submit_signup_data():
             tkinter.messagebox.showerror('Validation Error', error_message)
             return
 
-        existing_student = login_check(int(student_data['student_id']))
-        if existing_student:
+        existing_student = database.login_check(int(student_data['student_id']))
+        if existing_student is not None:
             tkinter.messagebox.showerror('Error', 'Student already registered')
             return
 
@@ -131,7 +139,7 @@ def submit_signup_data():
 
         try:
 
-            add_student(
+            database.add_student(
                 student_id=int(student_data['student_id']),
                 fname=student_data['fname'],
                 lname=student_data['lname'],
@@ -171,12 +179,11 @@ def clear_signup_entries():
     email_entry.delete(0, tkinter.END)
     phone_entry.delete(0, tkinter.END)
 
-    student_id_entry = None
-    first_name_entry = None
-    last_name_entry = None
-    password_entry = None
-    email_entry = None
-    phone_entry = None
+
 
 if __name__=="__main__":
     open_signup_window()
+
+
+
+
