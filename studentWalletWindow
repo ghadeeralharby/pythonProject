@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class studentWalletWindow:
-    def __init__(self, student_id, student_name):
+    def __init__(self, student_id, student_name , wallet_number, balance):
         self.student_id = student_id
         self.main_window = tk.Tk()
         self.main_window.title("Student Wallet")
@@ -17,6 +17,12 @@ class studentWalletWindow:
 
         self.welcome_label = tk.Label(self.top_frame , text=f'Hello, {student_name}')
         self.welcome_label.pack()
+
+        self.wallet_label = tk.Label(self.top_frame, text=f"Wallet Number: {wallet_number}")
+        self.wallet_label.pack()
+
+        self.balance_label = tk.Label(self.top_frame, text=f"Current Balance: {balance} SR")
+        self.balance_label.pack()
 
         #---frame for transfer input---
         self.transfer_frame = tk.LabelFrame(self.main_window , text="Make a transfer")
@@ -64,7 +70,7 @@ class studentWalletWindow:
       ok_button.pack(pady= 10)
 
 
-#----sadeem's methed here----
+#----Pay button action----
     def pay_action(self):
 
         try:
