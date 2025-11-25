@@ -1,0 +1,46 @@
+import tkinter as tk
+from tkinter import ttk
+
+class AdminWindow:
+    def __init__(self):
+        self.Admin_window = tk.Tk()
+        self.Admin_window.title("Admin Window")
+        self.Admin_window.geometry("500x400")
+
+        #----notebook----
+        self.notebook = ttk.Notebook(self.Admin_window)
+        self.notebook.pack(fill="both", expand=True)
+
+        #---- TAB 1 (VIEW) ----
+        self.viewTab= tk.Frame(self.notebook)
+        self.notebook.add(self.viewTab, text="View")
+
+        #----TAB2 (ADD) ----
+        self.addTab= tk.Frame(self.notebook)
+        self.notebook.add(self.addTab, text="Add")
+
+        #----TAB3 (MANAGE) ----
+        self.manageTab= tk.Frame(self.notebook)
+        self.notebook.add(self.manageTab, text="Manage")
+
+        #---method for TAB 1 (VIEW)---
+        self.build_view_tab()
+
+        self.Admin_window.mainloop()
+    def build_view_tab(self):
+        self.viewFrame = ttk.LabelFrame(self.viewTab , text="View KSU Entities")
+        self.viewFrame.pack(pady=20 , padx=20 , fill="both", expand=True)
+
+        self.viewFrame.columnconfigure(0, weight=1)
+
+        self.entities_label = tk.Label(self.viewFrame, text="Select an Entity")
+        self.entities_label.grid(row = 0, column = 0 , sticky="w" , pady=8)
+
+        self.entities_cb = ttk.Combobox(self.viewFrame , width=28)
+        self.entities_cb.grid(row = 1, column = 0 , pady=8 )
+
+        self.viewButton = tk.Button(self.viewFrame, text="View Balance")
+        self.viewButton.grid(row = 2, column = 0 , pady=10 )
+
+        self.balance_label = tk.Label(self.viewFrame, text="Balance:---SR")
+        self.balance_label.grid(row = 3, column = 0 , pady=10)
