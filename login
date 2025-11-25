@@ -67,11 +67,6 @@ class loginwindow:
         self.AdminWindow()
 
 
-    def goAdmin(self) :
-         messagebox.showinfo("Success", "Going to Admin ...")
-    def goWallet(self):
-         messagebox.showinfo("Success", "Going to Wallet...")
-
 
 
 if __name__=="__main__":
