@@ -1,1 +1,251 @@
+import tkinter as tk
+import tkinter.messagebox
+import database
+import random
+import re
+from tkinter import messagebox, Entry
+from database import *
+from database import engine
+from database import db
+
+
+class SignupWindow:
+    def __init__(self):
+        self.signup_window = tkinter.Tk()
+        self.setup_window()
+        self.create_widgets()
+        self.signup_window.mainloop()
+
+    def setup_window(self):
+        self.signup_window.configure(bg='lightgray')
+        self.signup_window.title('KSU Wallet - Student Sign Up')
+        self.signup_window.geometry('500x600')
+
+    def create_widgets(self):
+        top_frame = tkinter.Frame(self.signup_window, bg='lightgray')
+        mid_frame = tkinter.Frame(self.signup_window, bg='lightgray')
+        bottom_frame = tkinter.Frame(self.signup_window, bg='lightgray')
+
+        title_label = tkinter.Label(top_frame, text='Student sign Up', bg='lightgray', font=('Arial', 16, 'bold'))
+
+        student_id_label = tkinter.Label(mid_frame, text='Student ID:', bg='lightgray')
+        self.student_id_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+        first_name_label = tkinter.Label(mid_frame, text='First Name:', bg='lightgray')
+        self.first_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+        last_name_label = tkinter.Label(mid_frame, text='Last Name:', bg='lightgray')
+        self.last_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+        password_label = tkinter.Label(mid_frame, text='Password:', bg='lightgray')
+        self.password_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+        email_label = tkinter.Label(mid_frame, text='Email:', bg='lightgray')
+        self.email_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+        phone_label = tkinter.Label(mid_frame, text='Phone Number:', bg='lightgray')
+        self.phone_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+        submit_button = tkinter.Button(
+            bottom_frame,
+            text='Submit',
+            command=self.submit_signup_data,
+            bg='green',
+            fg='white',
+            width=15
+        )
+
+        login_button = tkinter.Button(
+            bottom_frame,
+            text='Login',
+            command=self.open_login_window,
+            bg='blue',
+            fg='white',
+            width=15
+        )
+
+        title_label.pack(pady=20)
+        student_id_label.pack()
+        self.student_id_entry.pack(pady=5)
+        first_name_label.pack()
+        self.first_name_entry.pack(pady=5)
+        last_name_label.pack()
+        self.last_name_entry.pack(pady=5)
+        password_label.pack()
+        self.password_entry.pack(pady=5)
+        email_label.pack()
+        self.email_entry.pack(pady=5)
+        phone_label.pack()
+        self.phone_entry.pack(pady=5)
+        submit_button.pack(side='left', padx=10, pady=20)
+        login_button.pack(side='left', padx=10, pady=20)
+        top_frame.pack()
+        mid_frame.pack()
+        bottom_frame.pack()
+
+    def validate_signup_data(self):
+        student_id = self.student_id_entry.get()
+        fname = self.first_name_entry.get()
+        lname = self.last_name_entry.get()
+        password = self.password_entry.get()
+        email = self.email_entry.get()
+        phone = self.phone_entry.get()
+
+        errors = []
+        if student_id == "":
+            errors.append('Student ID is required')
+        if fname == "":
+            errors.append('First name is required')
+        if lname == "":
+            errors.append('Last name is required')
+        if password == "":
+            errors.append('Password is required')
+        if email == "":
+            errors.append('Email is required')
+        if phone == "":
+            errors.append('Phone Number is required')
+
+        if len(student_id) != 10 or not student_id.isdigit():
+            errors.append('Student ID must be 10 digits')
+        if len(password) != 6:
+            errors.append('Password must be at least 6 characters')
+
+        email_pattern = r'^[a-zA-Z0-9._]+@student\.ksu\.edu\.sa$'
+        if not re.match(email_pattern, email):
+            errors.append('Invalid email format')
+
+        phone_pattern = r'^05[0-9]{8}$'
+        if not re.match(phone_pattern, phone):
+            errors.append('Invalid phone number format')
+
+        return errors, {'student_id': student_id,
+                        'fname': fname,
+                        'lname': lname,
+                        'password': password,
+                        'email': email,
+                        'phone': phone
+                        }
+
+    def generate_wallet_number(self):
+        return ''.join([str(random.randint(0, 9)) for _ in range(10)])
+
+    def submit_signup_data(self):
+        errors, student_data = self.validate_signup_data()
+        if errors:
+            error_message = '\n'.join(errors)
+            tkinter.messagebox.showerror('Validation Error', error_message)
+            return
+
+        existing_student = database.login_check(int(student_data['student_id']))
+        if existing_student is not None:
+            tkinter.messagebox.showerror('Error', 'Student already registered')
+            return
+
+        wallet_id= self.generate_wallet_number()
+
+        try:
+
+            database.add_student(
+                student_id=int(student_data['student_id']),
+                fname=student_data['fname'],
+                lname=student_data['lname'],
+                password=student_data['password'],
+                email=student_data['email'],
+                phone=int(student_data['phone']),
+                wallet_id= wallet_id
+            )
+            success_message = f"""
+                ✅ Registration Successful!
+
+                📋 Student Information:
+                Name: {student_data['fname']}  {student_data['lname']}
+                Student ID: {student_data['student_id']}
+
+                💳 Wallet Information:
+                Wallet Number: {wallet_id}
+                Initial Balance: 1000 SR
+                """
+            tkinter.messagebox.showinfo('Success', success_message)
+            self.clear_signup_entries()
+
+        except Exception as e:
+           tkinter.messagebox.showerror('Database Error', f'Error: {str(e)}')
+
+    def open_login_window(self):
+        self.signup_window.destroy()
+        loginwindow()
+
+    def clear_signup_entries(self):
+        self.student_id_entry.delete(0, tkinter.END)
+        self.first_name_entry.delete(0, tkinter.END)
+        self.last_name_entry.delete(0, tkinter.END)
+        self.password_entry.delete(0, tkinter.END)
+        self.email_entry.delete(0, tkinter.END)
+        self.phone_entry.delete(0, tkinter.END)
+
+class loginwindow:
+    def __init__(self):
+        self.login_window = tk.Tk()
+        self.login_window.configure(bg='lightgray')
+        self.login_window.geometry('500x500')
+        self.login_window.title("LogIn")
+
+        label_0 = tk.Label(self.login_window, text="log in ", width=20, font=("bold", 20))
+        label_0.place(x=90, y=53)
+
+        self.label_1L = tk.Label(self.login_window, text="ID :", width=20, font=("bold", 10))
+        self.label_1L.place(x=90, y=130)
+        self.entry_1L = tk.Entry(self.login_window)
+        self.entry_1L.place(x=240, y=130)
+
+        self.label_2P = tk.Label(self.login_window, text="Password :", width=20, font=("bold", 10))
+        self.label_2P.place(x=90, y=180)
+        self.entry_2P = tk.Entry(self.login_window)
+        self.entry_2P.place(x=240, y=180)
+
+        login = tk.Button(self.login_window, text="log in", command=self.logintodb)
+        login.place(x=240, y=300)
+        self.login_window.mainloop()
+
+    def logintodb(self):
+        conn = engine.connect()  ##############################################################3
+
+        id1 = str(self.entry_1L.get())
+        if len(id1) != 10 or not id1.isdigit():
+            id1 = ''
+            messagebox.showinfo("ID Number error!", "Re-enter an ID number properly\rthat consists of 10 digits")
+        else:
+            query = db.select([Students]).where(
+                (Students.c.Student_id == int(id1)) &
+                (Students.c.Password == self.entry_2P.get()))
+            result = conn.execute(query)
+            check = result.fetchone()
+            if check is None:
+                messagebox.showinfo("Error", "Invalid ID or password ")
+
+            else:
+                if self.entry_1L.get() == '1111111111':
+                    self.goAdmin()
+                else:
+                    self.goWallet()
+
+        conn.close()  ##################################################
+
+    def goWallet(self):
+        global l
+        l = self.entry_1L.get()
+        self.entry_1L = l
+        self.login_window.destroy()
+        self.StudentWalletWindow()
+
+    def goAdmin(self):
+        self.login_window.destroy()
+        self.AdminWindow()
+
+
+if __name__ == "__main__":
+    SignupWindow()
+
+
+
 
