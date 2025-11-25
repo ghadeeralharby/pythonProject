@@ -1,89 +1,95 @@
-import tkinter
+import tkinter as tk
 import tkinter.messagebox
 import database
 import random
 import re
+from tkinter import messagebox, Entry
+from database import *
+from database import engine
+from database import db
 
 
+class SignupWindow:
+    def __init__(self):
+        self.signup_window = tkinter.Tk()
+        self.setup_window()
+        self.create_widgets()
+        self.signup_window.mainloop()
 
-def open_signup_window():
-    global student_id_entry, first_name_entry, last_name_entry, password_entry, email_entry, phone_entry
+    def setup_window(self):
+        self.signup_window.configure(bg='lightgray')
+        self.signup_window.title('KSU Wallet - Student Sign Up')
+        self.signup_window.geometry('500x600')
 
-    signup_window = tkinter.Tk()
-    signup_window.configure(bg='lightgray')
-    signup_window.title('KSU Wallet - Student Sign Up')
-    signup_window.geometry('500x600')
+    def create_widgets(self):
+        top_frame = tkinter.Frame(self.signup_window, bg='lightgray')
+        mid_frame = tkinter.Frame(self.signup_window, bg='lightgray')
+        bottom_frame = tkinter.Frame(self.signup_window, bg='lightgray')
 
-    top_frame = tkinter.Frame(signup_window, bg='lightgray')
-    mid_frame = tkinter.Frame(signup_window, bg='lightgray')
-    bottom_frame = tkinter.Frame(signup_window, bg='lightgray')
+        title_label = tkinter.Label(top_frame, text='Student sign Up', bg='lightgray', font=('Arial', 16, 'bold'))
 
-    title_label = tkinter.Label(top_frame, text='Student sign Up', bg='lightgray', font=('Arial', 16, 'bold'))
+        student_id_label = tkinter.Label(mid_frame, text='Student ID:', bg='lightgray')
+        self.student_id_entry = tkinter.Entry(mid_frame, width=30, bg='white')
 
-    student_id_label = tkinter.Label(mid_frame, text='Student ID:', bg='lightgray')
-    student_id_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+        first_name_label = tkinter.Label(mid_frame, text='First Name:', bg='lightgray')
+        self.first_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
 
-    first_name_label = tkinter.Label(mid_frame, text='First Name:', bg='lightgray')
-    first_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+        last_name_label = tkinter.Label(mid_frame, text='Last Name:', bg='lightgray')
+        self.last_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
 
-    last_name_label = tkinter.Label(mid_frame, text='Last Name:', bg='lightgray')
-    last_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+        password_label = tkinter.Label(mid_frame, text='Password:', bg='lightgray')
+        self.password_entry = tkinter.Entry(mid_frame, width=30, bg='white')
 
+        email_label = tkinter.Label(mid_frame, text='Email:', bg='lightgray')
+        self.email_entry = tkinter.Entry(mid_frame, width=30, bg='white')
 
-    password_label = tkinter.Label(mid_frame, text='Password:', bg='lightgray')
-    password_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+        phone_label = tkinter.Label(mid_frame, text='Phone Number:', bg='lightgray')
+        self.phone_entry = tkinter.Entry(mid_frame, width=30, bg='white')
 
-    email_label = tkinter.Label(mid_frame, text='Email:', bg='lightgray')
-    email_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+        submit_button = tkinter.Button(
+            bottom_frame,
+            text='Submit',
+            command=self.submit_signup_data,
+            bg='green',
+            fg='white',
+            width=15
+        )
 
-    phone_label = tkinter.Label(mid_frame, text='Phone Number:', bg='lightgray')
-    phone_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+        login_button = tkinter.Button(
+            bottom_frame,
+            text='Login',
+            command=self.open_login_window,
+            bg='blue',
+            fg='white',
+            width=15
+        )
 
-    submit_button = tkinter.Button(
-        bottom_frame,
-        text='Submit',
-        command=submit_signup_data,
-        bg='green',
-        fg='white',
-        width=15
-    )
+        title_label.pack(pady=20)
+        student_id_label.pack()
+        self.student_id_entry.pack(pady=5)
+        first_name_label.pack()
+        self.first_name_entry.pack(pady=5)
+        last_name_label.pack()
+        self.last_name_entry.pack(pady=5)
+        password_label.pack()
+        self.password_entry.pack(pady=5)
+        email_label.pack()
+        self.email_entry.pack(pady=5)
+        phone_label.pack()
+        self.phone_entry.pack(pady=5)
+        submit_button.pack(side='left', padx=10, pady=20)
+        login_button.pack(side='left', padx=10, pady=20)
+        top_frame.pack()
+        mid_frame.pack()
+        bottom_frame.pack()
 
-    login_button = tkinter.Button(
-        bottom_frame,
-        text='Login',
-        command=open_login_window,
-        bg='blue',
-        fg='white',
-        width=15
-    )
-
-    title_label.pack(pady=20)
-    student_id_label.pack()
-    student_id_entry.pack(pady=5)
-    first_name_label.pack()
-    first_name_entry.pack(pady=5)
-    last_name_label.pack()
-    last_name_entry.pack(pady=5)
-    password_label.pack()
-    password_entry.pack(pady=5)
-    email_label.pack()
-    email_entry.pack(pady=5)
-    phone_label.pack()
-    phone_entry.pack(pady=5)
-    submit_button.pack(side='left', padx=10, pady=20)
-    login_button.pack(side='left', padx=10, pady=20)
-    top_frame.pack()
-    mid_frame.pack()
-    bottom_frame.pack()
-
-    signup_window.mainloop()
-def validate_signup_data():
-        student_id = student_id_entry.get()
-        fname = first_name_entry.get()
-        lname = last_name_entry.get()
-        password = password_entry.get()
-        email = email_entry.get()
-        phone = phone_entry.get()
+    def validate_signup_data(self):
+        student_id = self.student_id_entry.get()
+        fname = self.first_name_entry.get()
+        lname = self.last_name_entry.get()
+        password = self.password_entry.get()
+        email = self.email_entry.get()
+        phone = self.phone_entry.get()
 
         errors = []
         if student_id == "":
@@ -120,11 +126,11 @@ def validate_signup_data():
                         'phone': phone
                         }
 
-def generate_wallet_number():
-        return ''.join([str(random.randint(0,9)) for _ in range(10)])
+    def generate_wallet_number(self):
+        return ''.join([str(random.randint(0, 9)) for _ in range(10)])
 
-def submit_signup_data():
-        errors, student_data = validate_signup_data()
+    def submit_signup_data(self):
+        errors, student_data = self.validate_signup_data()
         if errors:
             error_message = '\n'.join(errors)
             tkinter.messagebox.showerror('Validation Error', error_message)
@@ -135,7 +141,7 @@ def submit_signup_data():
             tkinter.messagebox.showerror('Error', 'Student already registered')
             return
 
-        wallet_id= generate_wallet_number()
+        wallet_id= self.generate_wallet_number()
 
         try:
 
@@ -160,30 +166,20 @@ def submit_signup_data():
                 Initial Balance: 1000 SR
                 """
             tkinter.messagebox.showinfo('Success', success_message)
-            clear_signup_entries()
+            self.clear_signup_entries()
 
         except Exception as e:
            tkinter.messagebox.showerror('Database Error', f'Error: {str(e)}')
 
+    def open_login_window(self):
+        self.signup_window.destroy()
+        loginwindow()
 
-def open_login_window():
-    tkinter.messagebox.showinfo('Info', 'Login window will open')
-
-def clear_signup_entries():
-    global student_id_entry, first_name_entry, last_name_entry, password_entry, email_entry, phone_entry
-
-    student_id_entry.delete(0, tkinter.END)
-    first_name_entry.delete(0, tkinter.END)
-    last_name_entry.delete(0, tkinter.END)
-    password_entry.delete(0, tkinter.END)
-    email_entry.delete(0, tkinter.END)
-    phone_entry.delete(0, tkinter.END)
-
-
-
-if __name__=="__main__":
-    open_signup_window()
-
-
-
+    def clear_signup_entries(self):
+        self.student_id_entry.delete(0, tkinter.END)
+        self.first_name_entry.delete(0, tkinter.END)
+        self.last_name_entry.delete(0, tkinter.END)
+        self.password_entry.delete(0, tkinter.END)
+        self.email_entry.delete(0, tkinter.END)
+        self.phone_entry.delete(0, tkinter.END)
 
