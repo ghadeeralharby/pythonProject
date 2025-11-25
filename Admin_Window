@@ -54,6 +54,48 @@ class AdminWindow:
 
         self.balance_label = tk.Label(self.viewFrame, text="Balance:---SR")
         self.balance_label.grid(row = 3, column = 0 , pady=10)
+        def load_entities(self):
+            try:
+                rows = dataBase.get_entities()  # [(Entity_name, Wallet_number), ...]
+                if rows:
+                    names = [row[0] for row in rows]
+                    self.entities_cb["values"] = names
+                else:
+                    self.entities_cb["values"] = ["No entities found"]
+            except Exception as e:
+                self.entities_cb["values"] = [f"Error: {e}"]
+
+        def view_balance(self):
+            entity_name = self.entities_cb.get().strip()
+
+            if entity_name == "" or entity_name == "No entities found":
+                self.balance_label.config(text="Balance: --- SR")
+                return
+
+            try:
+                # get entities again to map name -> wallet number
+                rows = dataBase.get_entities()
+
+                wallet_number = None
+                for row in rows:
+                    if row[0] == entity_name:
+                        wallet_number = row[1]  # second column = wallet id
+                        break
+
+                if wallet_number is None:
+                    self.balance_label.config(text="Balance: Entity not found")
+                    return
+
+                # get wallet info
+                wallet_row = dataBase.get_entity_balance(wallet_number)
+                if wallet_row is None:
+                    self.balance_label.config(text="Balance: --- SR")
+                else:
+                    balance = wallet_row[2]  # (wId, student_id, Balance, ...)
+                    self.balance_label.config(text=f"Balance: {balance} SR")
+
+            except Exception as e:
+                self.balance_label.config(text=f"Error: {e}")
 
     def addTap(self):
         self.addFrame = ttk.LabelFrame(self.addTab , text="Add KSU Entities")
