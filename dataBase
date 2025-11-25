@@ -1,6 +1,6 @@
 import sqlalchemy as db
 from datetime import datetime
-
+import random 
 # Create engine
 engine = db.create_engine('sqlite:///KSU.db')
 conn = engine.connect()
@@ -14,7 +14,7 @@ Students = db.Table(
     db.Column('L_name', db.String(), nullable=False),
     db.Column('Password', db.String(6), nullable=False),
     db.Column('Email', db.String(), nullable=False),
-    db.Column('Phone', db.String(10), nullable=False),
+    db.Column('Phone', db.Integer, nullable=False),
 )
 
 # Wallets Table
@@ -140,3 +140,45 @@ def cash_out():
         Balance=0
     )
     conn.execute(update_entities)
+
+def add_admin():
+
+    admin_id = 1111111111
+    # ,add admin
+    admin_data = {
+        'student_id': admin_id,
+        'fname': 'shouq',
+        'lname': 'sami',
+        'password': '000000',
+        'email': 'shouq@gmail.com',
+        'phone': '0541009383'  # Now stored as string with leading zero
+    }
+
+    # Generate a wallet number for admin (10 digits)
+    wallet_id = ''.join([str(random.randint(0, 9)) for _ in range(10)])
+
+    # Add to Students table
+    ins_student = Students.insert().values(
+        Student_id=admin_data['student_id'],
+        F_name=admin_data['fname'],
+        L_name=admin_data['lname'],
+        Password=admin_data['password'],
+        Email=admin_data['email'],
+        Phone=admin_data['phone']
+    )
+    conn.execute(ins_student)
+
+    # Add to Wallets table
+    ins_wallet = Wallets.insert().values(
+        wId=wallet_id,
+        Student_id=admin_data['student_id'],
+        Balance=0,
+        Wallet_type="admin",
+        Created_at=str(datetime.now())
+    )
+    conn.execute(ins_wallet)
+
+    print(f"Admin added successfully. Wallet number: {wallet_id}")
+
+# Call the function to add admin
+add_admin()
