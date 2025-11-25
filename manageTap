@@ -1,0 +1,29 @@
+def manage_tap(self,parent_frame):
+
+    self.pay_btn = tkinter.Button(
+        parent_frame,
+        text ="Pay Stipends",
+        command= pay_stipends_action
+    )
+    self.pay_btn.pack(pady=10)
+
+    self.cashout_btn=tkinter.Button(
+        parent_frame,
+        text= "Cash Out",
+        command= cashout_action
+    )
+    self.cashout_btn.pack(pady=10)
+
+def pay_stipends_action(self):
+    try:
+        pay_stipends()
+        messagebox.showinfo("Success", "1000 SR added to all student wallets.")
+    except Exception as e:
+        messagebox.showerror("Error",str(e))
+
+def cashout_action(self):
+    try:
+        cash_out()
+        messagebox.showinfo("Success","All KSU entity wallets reset to 0.")
+    except Exception as e:
+        messagebox.showerror("Error",str(e))
