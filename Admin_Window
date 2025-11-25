@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-import dataBase
-from dataBase import *
-import dataBase
+import database
+from database import *
+import database
 from datetime import datetime
 import re
 from random import *
@@ -34,29 +34,33 @@ class AdminWindow:
         self.build_view_tab()
         #---method for TAB 2 (ADD)---
         self.addTap()
+        # ---method for TAB 3 (MANAGE)---
+        self.manage_tap()
 
 
         self.Admin_window.mainloop()
+
     def build_view_tab(self):
-        self.viewFrame = ttk.LabelFrame(self.viewTab , text="View KSU Entities")
-        self.viewFrame.pack(pady=20 , padx=20 , fill="both", expand=True)
+        self.viewFrame = ttk.LabelFrame(self.viewTab, text="View KSU Entities")
+        self.viewFrame.pack(pady=20, padx=20, fill="both", expand=True)
 
         self.viewFrame.columnconfigure(0, weight=1)
 
         self.entities_label = tk.Label(self.viewFrame, text="Select an Entity")
-        self.entities_label.grid(row = 0, column = 0 , sticky="w" , pady=8)
+        self.entities_label.grid(row=0, column=0, sticky="w", pady=8)
 
-        self.entities_cb = ttk.Combobox(self.viewFrame , width=28)
-        self.entities_cb.grid(row = 1, column = 0 , pady=8 )
+        self.entities_cb = ttk.Combobox(self.viewFrame, width=28)
+        self.entities_cb.grid(row=1, column=0, pady=8)
 
         self.viewButton = tk.Button(self.viewFrame, text="View Balance")
-        self.viewButton.grid(row = 2, column = 0 , pady=10 )
+        self.viewButton.grid(row=2, column=0, pady=10)
 
         self.balance_label = tk.Label(self.viewFrame, text="Balance:---SR")
-        self.balance_label.grid(row = 3, column = 0 , pady=10)
+        self.balance_label.grid(row=3, column=0, pady=10)
+
         def load_entities(self):
             try:
-                rows = dataBase.get_entities()  # [(Entity_name, Wallet_number), ...]
+                rows = database.get_entities()  # [(Entity_name, Wallet_number), ...]
                 if rows:
                     names = [row[0] for row in rows]
                     self.entities_cb["values"] = names
@@ -74,7 +78,7 @@ class AdminWindow:
 
             try:
                 # get entities again to map name -> wallet number
-                rows = dataBase.get_entities()
+                rows = database.get_entities()
 
                 wallet_number = None
                 for row in rows:
@@ -87,7 +91,7 @@ class AdminWindow:
                     return
 
                 # get wallet info
-                wallet_row = dataBase.get_entity_balance(wallet_number)
+                wallet_row = database.get_entity_balance(wallet_number)
                 if wallet_row is None:
                     self.balance_label.config(text="Balance: --- SR")
                 else:
@@ -119,4 +123,38 @@ class AdminWindow:
 
         tk.Button(self.addFrame, text="Submit", command=on_submit, width=15).pack(pady=10)
 
+    def manage_tap(self):
+        self.manageFrame = tk.LabelFrame(self.manageTab, text="Manage KSU Wallets")
+        self.manageFrame.pack(pady=20, padx=20, fill="both", expand=True)
+        self.manageFrame.columnconfigure(0, weight=1)
 
+        self.pay_btn = tk.Button(
+            self.manageFrame,
+            text="Pay Stipends",
+            command= self.pay_stipends_action
+        )
+        self.pay_btn.grid(row=0, column=0, pady=10, sticky="ew")
+
+        self.cashout_btn = tk.Button(
+            self.manageFrame,
+            text="Cash Out",
+            command= self.cashout_action
+        )
+        self.cashout_btn.grid(row=1, column=0, pady=10, sticky="ew")
+
+
+    def pay_stipends_action(self):
+        try:
+            pay_stipends()
+            messagebox.showinfo("Success", "1000 SR added to all student wallets.")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def cashout_action(self):
+        try:
+            cash_out()
+            messagebox.showinfo("Success", "All KSU entity wallets reset to 0.")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+if __name__ == "__main__":
+    AdminWindow()
