@@ -1,0 +1,182 @@
+def open_signup_window():
+    global student_id_entry, first_name_entry, last_name_entry, password_entry, email_entry, phone_entry
+
+    signup_window = tkinter.Tk()
+    signup_window.configure(bg='lightgray')
+    signup_window.title('KSU Wallet - Student Sign Up')
+    signup_window.geometry('500x600')
+
+    top_frame = tkinter.Frame(signup_window, bg='lightgray')
+    mid_frame = tkinter.Frame(signup_window, bg='lightgray')
+    bottom_frame = tkinter.Frame(signup_window, bg='lightgray')
+
+    title_label = tkinter.Label(top_frame, text='Student sign Up', bg='lightgray', font=('Arial', 16, 'bold'))
+
+    student_id_label = tkinter.Label(mid_frame, text='Student ID:', bg='lightgray')
+    student_id_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+    first_name_label = tkinter.Label(mid_frame, text='First Name:', bg='lightgray')
+    first_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+    last_name_label = tkinter.Label(mid_frame, text='Last Name:', bg='lightgray')
+    last_name_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+
+    password_label = tkinter.Label(mid_frame, text='Password:', bg='lightgray')
+    password_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+    email_label = tkinter.Label(mid_frame, text='Email:', bg='lightgray')
+    email_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+    phone_label = tkinter.Label(mid_frame, text='Phone Number:', bg='lightgray')
+    phone_entry = tkinter.Entry(mid_frame, width=30, bg='white')
+
+    submit_button = tkinter.Button(
+        bottom_frame,
+        text='Submit',
+        command=submit_signup_data,
+        bg='green',
+        fg='white',
+        width=15
+    )
+
+    login_button = tkinter.Button(
+        bottom_frame,
+        text='Login',
+        command=open_login_window,
+        bg='blue',
+        fg='white',
+        width=15
+    )
+
+    title_label.pack(pady=20)
+    student_id_label.pack()
+    student_id_entry.pack(pady=5)
+    first_name_label.pack()
+    first_name_entry.pack(pady=5)
+    last_name_label.pack()
+    last_name_entry.pack(pady=5)
+    password_label.pack()
+    password_entry.pack(pady=5)
+    email_label.pack()
+    email_entry.pack(pady=5)
+    phone_label.pack()
+    phone_entry.pack(pady=5)
+    submit_button.pack(side='left', padx=10, pady=20)
+    login_button.pack(side='left', padx=10, pady=20)
+    top_frame.pack()
+    mid_frame.pack()
+    bottom_frame.pack()
+
+    signup_window.mainloop()
+def validate_signup_data():
+        student_id = student_id_entry.get()
+        fname = first_name_entry.get()
+        lname = last_name_entry.get()
+        password = password_entry.get()
+        email = email_entry.get()
+        phone = phone_entry.get()
+
+        errors = []
+        if student_id == "":
+            errors.append('Student ID is required')
+        if fname == "":
+            errors.append('First name is required')
+        if lname == "":
+            errors.append('Last name is required')
+        if password == "":
+            errors.append('Password is required')
+        if email == "":
+            errors.append('Email is required')
+        if phone == "":
+            errors.append('Phone Number is required')
+
+        if len(student_id) != 10 or not student_id.isdigit():
+            errors.append('Student ID must be 10 digits')
+        if len(password) != 6:
+            errors.append('Password must be at least 6 characters')
+
+        email_pattern = r'^[a-zA-Z0-9._]+@student\.ksu\.edu\.sa$'
+        if not re.match(email_pattern, email):
+            errors.append('Invalid email format')
+
+        phone_pattern = r'^05[0-9]{8}$'
+        if not re.match(phone_pattern, phone):
+            errors.append('Invalid phone number format')
+
+        return errors, {'student_id': student_id,
+                        'fname': fname,
+                        'lname': lname,
+                        'password': password,
+                        'email': email,
+                        'phone': phone
+                        }
+
+def generate_wallet_number():
+        return ''.join([str(random.randint(0,9)) for _ in range(10)])
+
+def submit_signup_data():
+        errors, student_data = validate_signup_data()
+        if errors:
+            error_message = '\n'.join(errors)
+            tkinter.messagebox.showerror('Validation Error', error_message)
+            return
+
+        existing_student = login_check(int(student_data['student_id']))
+        if existing_student:
+            tkinter.messagebox.showerror('Error', 'Student already registered')
+            return
+
+        wallet_id= generate_wallet_number()
+
+        try:
+
+            add_student(
+                student_id=int(student_data['student_id']),
+                fname=student_data['fname'],
+                lname=student_data['lname'],
+                password=student_data['password'],
+                email=student_data['email'],
+                phone=int(student_data['phone']),
+                wallet_id= wallet_id
+            )
+            success_message = f"""
+                ✅ Registration Successful!
+
+                📋 Student Information:
+                Name: {student_data['fname']}  {student_data['lname']}
+                Student ID: {student_data['student_id']}
+
+                💳 Wallet Information:
+                Wallet Number: {wallet_id}
+                Initial Balance: 1000 SR
+                """
+            tkinter.messagebox.showinfo('Success', success_message)
+            clear_signup_entries()
+
+        except Exception as e:
+           tkinter.messagebox.showerror('Database Error', f'Error: {str(e)}')
+
+
+def open_login_window():
+    tkinter.messagebox.showinfo('Info', 'Login window will open')
+
+def clear_signup_entries():
+    global student_id_entry, first_name_entry, last_name_entry, password_entry, email_entry, phone_entry
+
+    student_id_entry.delete(0, tkinter.END)
+    first_name_entry.delete(0, tkinter.END)
+    last_name_entry.delete(0, tkinter.END)
+    password_entry.delete(0, tkinter.END)
+    email_entry.delete(0, tkinter.END)
+    phone_entry.delete(0, tkinter.END)
+
+    student_id_entry = None
+    first_name_entry = None
+    last_name_entry = None
+    password_entry = None
+    email_entry = None
+    phone_entry = None
+
+if __name__=="__main__":
+    open_signup_window()
