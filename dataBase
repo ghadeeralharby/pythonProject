@@ -1,0 +1,142 @@
+import sqlalchemy as db
+from datetime import datetime
+
+# Create engine
+engine = db.create_engine('sqlite:///KSU.db')
+conn = engine.connect()
+metadata = db.MetaData()
+
+# Students Table
+Students = db.Table(
+    'Students', metadata,
+    db.Column('Student_id', db.Integer, primary_key=True, nullable=False),
+    db.Column('F_name', db.String(), nullable=False),
+    db.Column('L_name', db.String(), nullable=False),
+    db.Column('Password', db.String(6), nullable=False),
+    db.Column('Email', db.String(), nullable=False),
+    db.Column('Phone', db.Integer, nullable=False),
+)
+
+# Wallets Table
+Wallets = db.Table(
+    'Wallets', metadata,
+    db.Column('wId', db.Integer, primary_key=True, nullable=False),
+    db.Column('Student_id', db.Integer, db.ForeignKey('Students.Student_id'), nullable=False),
+    db.Column('Balance', db.Float, nullable=False),
+    db.Column('Wallet_type', db.String(), nullable=False),
+    db.Column('Created_at', db.String(), nullable=False)
+)
+
+# Entities Table
+Entities = db.Table(
+    'Entities', metadata,
+    db.Column('Entity_name', db.String(), primary_key=True, nullable=False),
+    db.Column('Wallet_number', db.Integer, db.ForeignKey('Wallets.wId'), nullable=False)
+)
+
+# Create tables
+metadata.create_all(engine)
+
+
+# ============================================================
+#                   METHODS SECTION
+
+# Adds a new student and creates a wallet with 1000 SR initial balance.
+def add_student(student_id, fname, lname, password, email, phone, wallet_id):
+    ins_student = Students.insert().values(
+        Student_id=student_id,
+        F_name=fname,
+        L_name=lname,
+        Password=password,
+        Email=email,
+        Phone=phone
+    )
+    conn.execute(ins_student)
+
+    ins_wallet = Wallets.insert().values(
+        wId=wallet_id,
+        Student_id=student_id,
+        Balance=1000,
+        Wallet_type="student",
+        Created_at=str(datetime.now())
+    )
+    conn.execute(ins_wallet)
+
+
+# Checks if a student exists in the database for login validation.
+def login_check(student_id):
+    s = Students.select().where(Students.c.Student_id == student_id)
+    return conn.execute(s).fetchone()
+
+
+# Returns the wallet information for the given student.
+def get_wallet(student_id):
+    s = Wallets.select().where(Wallets.c.Student_id == student_id)
+    return conn.execute(s).fetchone()
+
+
+# Checks if a wallet number exists in the database.
+def wallet_exists(wallet_number):
+    s = Wallets.select().where(Wallets.c.wId == wallet_number)
+    return conn.execute(s).fetchone()
+
+
+# Transfers money: subtracts from sender and adds to receiver.
+def transfer_amount(sender_wallet, receiver_wallet, amount):
+    update_sender = Wallets.update().where(
+        Wallets.c.wId == sender_wallet
+    ).values(
+        Balance=Wallets.c.Balance - amount
+    )
+    conn.execute(update_sender)
+
+    update_receiver = Wallets.update().where(
+        Wallets.c.wId == receiver_wallet
+    ).values(
+        Balance=Wallets.c.Balance + amount
+    )
+    conn.execute(update_receiver)
+
+
+# Returns all KSU entities stored in the database.
+def get_entities():
+    s = Entities.select()
+    return conn.execute(s).fetchall()
+
+
+# Returns the balance for the selected entity wallet.
+def get_entity_balance(wallet_number):
+    s = Wallets.select().where(Wallets.c.wId == wallet_number)
+    return conn.execute(s).fetchone()
+
+
+# Adds a new KSU entity and creates a wallet with 0 initial balance.
+def add_entity(entity_name, wallet_number):
+    ins_entity = Entities.insert().values(
+        Entity_name=entity_name,
+        Wallet_number=wallet_number
+    )
+    conn.execute(ins_entity)
+
+    ins_wallet = Wallets.insert().values(
+        wId=wallet_number,
+        Student_id=None,
+        Balance=0,
+        Wallet_type="KSU",
+        Created_at=str(datetime.now())
+    )
+    conn.execute(ins_wallet)
+
+
+# Adds 1000 SR to all student wallets (monthly stipends).
+def pay_stipends():
+    update_all = Wallets.update().where(Wallets.c.Wallet_type == "student").values(Balance=Wallets.c.Balance + 1000)
+    conn.execute(update_all)
+
+
+# Sets all KSU entity wallet balances to zero.
+def cash_out():
+    update_entities = Wallets.update().where(Wallets.c.Wallet_type == "KSU").values(
+        Balance=0
+    )
+    conn.execute(update_entities)
