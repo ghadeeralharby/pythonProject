@@ -1,0 +1,158 @@
+import dataBase
+import tkinter as tk
+from pyexpat.errors import messages
+from datetime import datetime
+
+
+class studentWalletWindow:
+    def __init__(self, student_id, student_name):
+        self.student_id = student_id
+        self.main_window = tk.Tk()
+        self.main_window.title("Student Wallet")
+        self.main_window.geometry("600x600")
+
+        # ---display a welcome message for student---
+        self.top_frame = tk.Frame(self.main_window)
+        self.top_frame.pack(pady=10)
+
+        self.welcome_label = tk.Label(self.top_frame , text=f'Hello, {student_name}')
+        self.welcome_label.pack()
+
+        #---frame for transfer input---
+        self.transfer_frame = tk.LabelFrame(self.main_window , text="Make a transfer")
+        self.transfer_frame.pack(pady=15 , padx=10 , fill="both")
+
+        #---label and entry for target---
+        self.label_target = tk.Label(self.transfer_frame , text="Target wallet number")
+        self.label_target.grid(row = 0, column = 0 , sticky = "w" , padx = 5 , pady = 8)
+
+        self.entry_target = tk.Entry(self.transfer_frame , width=20)
+        self.entry_target.grid(row = 0, column = 1 , sticky = "w" , padx = 5 , pady = 8)
+
+        #---label and entry for amount---
+        self.label_amount = tk.Label(self.transfer_frame , text="Amount (SR)")
+        self.label_amount.grid(row = 1, column = 0 , sticky = "w" , padx = 5 , pady = 8)
+
+        self.entry_amount = tk.Entry(self.transfer_frame , width=20)
+        self.entry_amount.grid(row = 1, column = 1 , sticky = "w" , padx = 5 , pady = 8)
+
+        #---frame for button---
+        self.button_frame = tk.Frame(self.main_window)
+        self.button_frame.pack(pady=10)
+
+
+        #---pay button---
+        self.pay_button = tk.Button(self.button_frame ,text = "Pay",  width=10 , command=self.pay_action)
+        self.pay_button.grid(padx=10, row=0 , column=0)
+
+        #---back button---
+        self.back_button = tk.Button(self.button_frame ,text = "Back", width=10 , command = self.main_window.destroy )
+        self.back_button.grid(padx=10, row=0 , column=1)
+
+        self.main_window.mainloop()
+
+#---popup window for payment status---
+    def show_pay_popup(self , message):
+      popup = tk.Toplevel(self.main_window)
+      popup.title("Payment status")
+      popup.geometry("300x150")
+
+      message_label = tk.Label(popup , text=message)
+      message_label.pack(pady=20)
+
+      ok_button = tk.Button(popup , text="Ok", width=10 , command = popup.destroy )
+      ok_button.pack(pady= 10)
+
+
+#----sadeem's methed here----
+    def pay_action(self):
+
+        try:
+            # Read inputs
+            target_wallet = self.entry_target.get().strip()
+            amount = self.entry_amount.get().strip()
+
+            # Validate numeric input
+            if not target_wallet.isdigit() or not amount.replace('.', '', 1).isdigit():
+                raise ValueError("Invalid input. Please enter numbers only.")
+
+            target_wallet = int(target_wallet)
+            amount = float(amount)
+
+            # Check if receiver wallet exists
+            receiver = dataBase.wallet_exists(target_wallet)
+            if receiver is None:
+                raise LookupError("Wallet number does not exist.")
+
+            # Get current student's wallet
+            my_wallet = dataBase.get_wallet(self.student_id)
+            if my_wallet is None:
+                raise LookupError("Your wallet was not found in the system.")
+
+            sender_wallet_id = my_wallet[0]  # wId
+            sender_balance = my_wallet[2]  # Balance
+
+            # Check if balance is sufficient
+            if amount > sender_balance:
+                raise ArithmeticError("Insufficient balance.")
+
+            # Perform the transfer
+            dataBase.transfer_amount(sender_wallet_id, target_wallet, amount)
+
+            # Get updated sender balance after the transfer
+            new_sender_wallet = dataBase.get_entity_balance(sender_wallet_id)
+            new_balance = new_sender_wallet[2]
+
+
+
+        #--- Exception Handling Layer---
+        except ValueError as e:
+            self.show_pay_popup(str(e))
+
+        except LookupError as e:
+            self.show_pay_popup(str(e))
+
+        except ArithmeticError as e:
+            self.show_pay_popup(str(e))
+
+        except Exception as e:
+            self.show_pay_popup(f"Unexpected Error: {str(e)}")
+
+        else:
+            # Create transfer details window only if no exception raised
+            details = tk.Toplevel(self.main_window)
+            details.title("Transfer Details")
+            details.geometry("380x300")
+
+            # Title
+            title_label = tk.Label(details, text="Transfer Details")
+            title_label.pack()
+
+            # Sender wallet
+            sender_label = tk.Label(details,text=f"Sender Wallet: {sender_wallet_id}")
+            sender_label.pack()
+
+            # Receiver wallet
+            receiver_label = tk.Label(details,text=f"Receiver Wallet: {target_wallet}")
+            receiver_label.pack()
+
+            # Amount
+            amount_label = tk.Label(details,text=f"Amount Sent: {amount} SR")
+            amount_label.pack()
+
+            # Balance
+            balance_label = tk.Label(details,text=f"Remaining Balance: {new_balance} SR")
+            balance_label.pack()
+
+            # Date & Time
+            date_label = tk.Label(details,text=f"Date & Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            date_label.pack()
+
+            # Success massage
+            success_label = tk.Label(details,text="Payment completed successfully.", font=("Arial", 12, "bold"))
+            success_label.pack()
+
+            # OK button
+            ok_button = tk.Button(details, text="OK", width=10, command=details.destroy)
+            ok_button.pack()
+
