@@ -1,5 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
+import dataBase
+from dataBase import *
+import dataBase
+from datetime import datetime
+import re
+from random import *
+from tkinter import messagebox
 
 class AdminWindow:
     def __init__(self):
@@ -25,6 +32,9 @@ class AdminWindow:
 
         #---method for TAB 1 (VIEW)---
         self.build_view_tab()
+        #---method for TAB 2 (ADD)---
+        self.addTap()
+
 
         self.Admin_window.mainloop()
     def build_view_tab(self):
@@ -44,3 +54,27 @@ class AdminWindow:
 
         self.balance_label = tk.Label(self.viewFrame, text="Balance:---SR")
         self.balance_label.grid(row = 3, column = 0 , pady=10)
+
+    def addTap(self):
+        self.addFrame = ttk.LabelFrame(self.addTab , text="Add KSU Entities")
+        tk.Label(self.addFrame, text="KSU Entity Name:").pack(pady=5)
+        self.entity_name_entry = tk.Entry(self.addFrame, width=30)
+        self.entity_name_entry.pack(pady=5)
+
+        def on_submit():
+            entity_name = self.entity_name_entry.get().strip()
+            if not entity_name:
+                messagebox.showerror("Error", "Please enter entity name!")
+                return
+
+            if entity_name in get_entities():
+                messagebox.showerror("Error", "KSU entity already registered!")
+            else:
+                wallet_number = ''.join([str(random.randint(0, 9)) for _ in range(10)])
+                add_entity(entity_name, wallet_number)
+                messagebox.showinfo("Success", f"Entity {entity_name} added with wallet number {wallet_number}")
+                self.entity_name_entry.delete(0, tk.END)
+
+        tk.Button(self.addFrame, text="Submit", command=on_submit, width=15).pack(pady=10)
+
+
