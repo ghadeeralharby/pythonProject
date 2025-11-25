@@ -32,42 +32,36 @@ class loginwindow:
         self.login_window.mainloop()
 
     def logintodb(self):
-         conn = engine.connect ()  ##############################################################3
+        conn = engine.connect()  ##############################################################3
 
-         id1 = str(self.entry_1L.get())
-         if len(id1 )!= 10 or not id1.isdigit():
-             id1 = ''
-             messagebox.showinfo("ID Number error!", "Re-enter an ID number properly\rthat consists of 10 digits")
-         else:
-             query = db.select([Students]).where(
-                 (Students.c.Student_id == int(id1)) &
-                 (Students.c.Password == self.entry_2P.get()))
-             result = conn.execute(query)
-             check = result.fetchone()
-             if check is None:
-               messagebox.showinfo("Error", "Invalid ID or password ")
+        id1 = str(self.entry_1L.get())
+        if len(id1) != 10 or not id1.isdigit():
+            id1 = ''
+            messagebox.showinfo("ID Number error!", "Re-enter an ID number properly\rthat consists of 10 digits")
+        else:
+            query = db.select([Students]).where(
+                (Students.c.Student_id == int(id1)) &
+                (Students.c.Password == self.entry_2P.get()))
+            result = conn.execute(query)
+            check = result.fetchone()
+            if check is None:
+                messagebox.showinfo("Error", "Invalid ID or password ")
 
-             else:
-                 if self.entry_1L.get() == '1111111111':
-                    self.goAdmin()
-                 else:
-                    self.goWallet()
+            else:
+                if self.entry_1L.get() == '1111111111':
+                    self.open_adminwindow()
+                else:
+                    self.open_StudentWalletWindow()
 
-         conn.close()  ##################################################
+        conn.close()  ##################################################
 
-
-    def goWallet(self):
+    def open_StudentWalletWindow(self):
         global l
-        l=self.entry_1L.get()
-        self.entry_1L=l
+        l = self.entry_1L.get()
+        self.entry_1L = l
         self.login_window.destroy()
-        self.StudentWalletWindow()
-    def goAdmin(self):
+        studentWalletWindow()
+
+    def open_adminwindow(self):
         self.login_window.destroy()
-        self.AdminWindow()
-
-
-
-
-if __name__=="__main__":
-    loginwindow()
+        AdminWindow()
