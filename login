@@ -34,9 +34,16 @@ class loginwindow:
         self.entry_2P = tk.Entry(form_frame, width=25, show="*")
         self.entry_2P.grid(row=1, column=1, pady=8, padx=5)
 
+        button_frame = tk.Frame(self.login_window)
+        button_frame.pack(pady=15)
 
-        login_btn = tk.Button(self.login_window, text="Log In", width=12, command=self.logintodb)
-        login_btn.pack(pady=20)
+
+        login_btn = tk.Button(button_frame, text="Log In", width=10, command=self.logintodb)
+        login_btn.grid(row=0, column=0, padx=10)
+
+
+        back_btn = tk.Button(button_frame, text="Back", width=10, command=self.back_to_signup)
+        back_btn.grid(row=0, column=1, padx=10)
 
 
 
@@ -85,9 +92,15 @@ class loginwindow:
 
         studentWalletWindow(student_id, student_name, wallet_number, balance)
 
-   
+
 
     def open_adminwindow(self):
         from admin_window import AdminWindow
         self.login_window.destroy()
         AdminWindow()
+
+    def back_to_signup(self):
+        from signup_window import SignupWindow
+        self.login_window.destroy()
+        SignupWindow()
+
