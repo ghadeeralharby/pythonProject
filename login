@@ -1,81 +1,93 @@
 import tkinter as tk
-from tkinter import messagebox, Entry
+from tkinter import messagebox
 from dataBase import *
-from dataBase import engine
-from dataBase import db
 import dataBase
-
-###########################################
 
 
 class loginwindow:
     def __init__(self):
         self.login_window = tk.Toplevel()
-        self.login_window.configure(bg='lightgray')
-        self.login_window.geometry('500x500')
-        self.login_window.title("LogIn")
+        self.login_window.title("Login Window")
+        self.login_window.geometry("400x350")
 
-        label_0 = tk.Label(self.login_window, text="log in ", width=20, font=("bold", 20))
-        label_0.place(x=90, y=53)
 
-        self.label_1L = tk.Label(self.login_window, text="ID :", width=20, font=("bold", 10))
-        self.label_1L.place(x=90, y=130)
-        self.entry_1L = tk.Entry(self.login_window)
-        self.entry_1L.place(x=240, y=130)
+        title_label = tk.Label(self.login_window, text="Log In")
+        title_label.pack(pady=15)
 
-        self.label_2P = tk.Label(self.login_window, text="Password :", width=20, font=("bold", 10))
-        self.label_2P.place(x=90, y=180)
-        self.entry_2P = tk.Entry(self.login_window)
-        self.entry_2P.place(x=240, y=180)
 
-        login = tk.Button(self.login_window, text="log in", command=self.logintodb)
-        login.place(x=240, y=300)
+        form_frame = tk.LabelFrame(self.login_window, text="Enter Your Credentials", padx=10, pady=10)
+        form_frame.pack(pady=20, padx=20, fill="both")
+
+
+        self.label_1L = tk.Label(form_frame, text="ID:")
+        self.label_1L.grid(row=0, column=0, sticky="w", pady=8, padx=5)
+
+
+        self.entry_1L = tk.Entry(form_frame, width=25)
+        self.entry_1L.grid(row=0, column=1, pady=8, padx=5)
+
+
+        self.label_2P = tk.Label(form_frame, text="Password:")
+        self.label_2P.grid(row=1, column=0, sticky="w", pady=8, padx=5)
+
+
+        self.entry_2P = tk.Entry(form_frame, width=25, show="*")
+        self.entry_2P.grid(row=1, column=1, pady=8, padx=5)
+
+
+        login_btn = tk.Button(self.login_window, text="Log In", width=12, command=self.logintodb)
+        login_btn.pack(pady=20)
+
+
 
     def logintodb(self):
-        conn = engine.connect()  ##############################################################3
+        conn = engine.connect()
 
-        id1 = (self.entry_1L.get().strip())
-        password= str(self.entry_2P.get().strip())
+        id1 = self.entry_1L.get().strip()
+        password = self.entry_2P.get().strip()
+
+
         if len(id1) != 10 or not id1.isdigit():
-            id1 = ''
-            messagebox.showinfo("ID Number error!", "Re-enter an ID number properly\rthat consists of 10 digits")
+            messagebox.showinfo("ID Number error!", "Re-enter an ID number properly\nthat consists of 10 digits")
+            conn.close()
             return
 
+
+        result = dataBase.login_check(int(id1), password)
+        check = result
+
+        if check is None:
+            messagebox.showinfo("Error", "Invalid ID or password ")
         else:
-            #  query = db.select(Students).where(
-            #(Students.c.Student_id == int(id1)) &
-            # (Students.c.Password == self.entry_2P.get()))
-            result = dataBase.login_check(int(id1), password)
-            check = result
 
-            if check is None:
-                messagebox.showinfo("Error", "Invalid ID or password ")
-
+            if id1 == "1111111111":
+                self.open_adminwindow()
             else:
-                if id1 == '1111111111':
-                    self.open_adminwindow()
-                else:
-                    self.open_StudentWalletWindow(check)
+                self.open_StudentWalletWindow(check)
 
-        conn.close()  ##################################################
+        conn.close()
+
+
 
     def open_StudentWalletWindow(self, check):
-        from StudentWallet import studentWalletWindow
+        from student_wallet_window import studentWalletWindow
 
-        student_id = check[0]
-        fname = check[1]
-        lname = check[2]
-
+        student_id = check[0]           # Student_id
+        fname = check[1]                # First name
+        lname = check[2]                # Last name
         student_name = fname + " " + lname
 
         wallet = get_wallet(student_id)
-        wallet_number = wallet[0]
-        balance = wallet[2]
+        wallet_number = wallet[0]       # wId
+        balance = wallet[2]             # Balance
 
         self.login_window.destroy()
+
         studentWalletWindow(student_id, student_name, wallet_number, balance)
 
+   
+
     def open_adminwindow(self):
-        from Admin import AdminWindow
+        from admin_window import AdminWindow
         self.login_window.destroy()
         AdminWindow()
