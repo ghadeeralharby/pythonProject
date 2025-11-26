@@ -3,13 +3,14 @@ from tkinter import messagebox, Entry
 from dataBase import *
 from dataBase import engine
 from dataBase import db
+import dataBase
 
 ###########################################
 
 
 class loginwindow:
     def __init__(self):
-        self.login_window = tk.Tk()
+        self.login_window = tk.Toplevel()
         self.login_window.configure(bg='lightgray')
         self.login_window.geometry('500x500')
         self.login_window.title("LogIn")
@@ -29,39 +30,52 @@ class loginwindow:
 
         login = tk.Button(self.login_window, text="log in", command=self.logintodb)
         login.place(x=240, y=300)
-        self.login_window.mainloop()
 
     def logintodb(self):
         conn = engine.connect()  ##############################################################3
 
-        id1 = str(self.entry_1L.get())
+        id1 = (self.entry_1L.get().strip())
+        password= str(self.entry_2P.get().strip())
         if len(id1) != 10 or not id1.isdigit():
             id1 = ''
             messagebox.showinfo("ID Number error!", "Re-enter an ID number properly\rthat consists of 10 digits")
+            return
+
         else:
-            query = db.select([Students]).where(
-                (Students.c.Student_id == int(id1)) &
-                (Students.c.Password == self.entry_2P.get()))
-            result = conn.execute(query)
-            check = result.fetchone()
+            #  query = db.select(Students).where(
+            #(Students.c.Student_id == int(id1)) &
+            # (Students.c.Password == self.entry_2P.get()))
+            result = dataBase.login_check(int(id1), password)
+            check = result
+
             if check is None:
                 messagebox.showinfo("Error", "Invalid ID or password ")
 
             else:
-                if self.entry_1L.get() == '1111111111':
+                if id1 == '1111111111':
                     self.open_adminwindow()
                 else:
-                    self.open_StudentWalletWindow()
+                    self.open_StudentWalletWindow(check)
 
         conn.close()  ##################################################
 
-    def open_StudentWalletWindow(self):
-        global l
-        l = self.entry_1L.get()
-        self.entry_1L = l
+    def open_StudentWalletWindow(self, check):
+        from StudentWallet import studentWalletWindow
+
+        student_id = check[0]
+        fname = check[1]
+        lname = check[2]
+
+        student_name = fname + " " + lname
+
+        wallet = get_wallet(student_id)
+        wallet_number = wallet[0]
+        balance = wallet[2]
+
         self.login_window.destroy()
-        studentWalletWindow()
+        studentWalletWindow(student_id, student_name, wallet_number, balance)
 
     def open_adminwindow(self):
+        from Admin import AdminWindow
         self.login_window.destroy()
         AdminWindow()
