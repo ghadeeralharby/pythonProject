@@ -1,20 +1,16 @@
 import tkinter as tk
 import tkinter.messagebox
-import database
+import dataBase
 import random
 import re
 from tkinter import messagebox, Entry
-from database import *
-from database import engine
-from database import db
 
 
 class SignupWindow:
     def __init__(self):
-        self.signup_window = tkinter.Tk()
+        self.signup_window = tkinter.Toplevel()
         self.setup_window()
         self.create_widgets()
-        self.signup_window.mainloop()
 
     def setup_window(self):
         self.signup_window.configure(bg='lightgray')
@@ -136,7 +132,7 @@ class SignupWindow:
             tkinter.messagebox.showerror('Validation Error', error_message)
             return
 
-        existing_student = database.login_check(int(student_data['student_id']))
+        existing_student = dataBase.login_check(int(student_data['student_id']),student_data['password'])
         if existing_student is not None:
             tkinter.messagebox.showerror('Error', 'Student already registered')
             return
@@ -145,7 +141,7 @@ class SignupWindow:
 
         try:
 
-            database.add_student(
+            dataBase.add_student(
                 student_id=int(student_data['student_id']),
                 fname=student_data['fname'],
                 lname=student_data['lname'],
@@ -172,8 +168,10 @@ class SignupWindow:
            tkinter.messagebox.showerror('Database Error', f'Error: {str(e)}')
 
     def open_login_window(self):
+        from Login import loginwindow
         self.signup_window.destroy()
         loginwindow()
+
 
     def clear_signup_entries(self):
         self.student_id_entry.delete(0, tkinter.END)
@@ -182,4 +180,3 @@ class SignupWindow:
         self.password_entry.delete(0, tkinter.END)
         self.email_entry.delete(0, tkinter.END)
         self.phone_entry.delete(0, tkinter.END)
-
